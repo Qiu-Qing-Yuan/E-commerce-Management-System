@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="xadmin/css/font.css">
+    <link rel="stylesheet" href="xadmin/css/xadmin.css">
+    <link rel="stylesheet" href="xadmin/css/theme4.css">
+    <script src="xadmin/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="xadmin/js/xadmin.js"></script>
+    <script type="text/javascript" src="js/vue.min.js"></script>
+    <script type="text/javascript" src="js/axios.min.js"></script>
+</head>
+<body class="index">
+<!-- 顶部开始 -->
+    <div class="container" id="index">
+        <div class="logo">
+            <a href="./index">电商平台后台管理系统</a></div>
+        <div class="left_open">
+            <a><i title="展开左侧栏" class="iconfont">&#xe699;</i></a>
+        </div>
+        <ul class="layui-nav right" lay-filter="">
+            <li class="layui-nav-item">
+                <a href="javascript:;">{{session}}</a>
+                <dl class="layui-nav-child">
+                    <!-- 二级菜单 -->
+                    <dd>
+                        <a onclick="xadmin.open('个人信息','http://www.baidu.com')">个人信息</a></dd>
+<!--                    <dd>-->
+<!--                        <a onclick="xadmin.open('切换帐号','http://www.baidu.com')">切换帐号</a></dd>-->
+                    <dd>
+                        <a href="logout">退出</a></dd>
+                </dl>
+            </li>
+    <!--        <li class="layui-nav-item to-index">-->
+    <!--            <a href="/">前台首页</a></li>-->
+        </ul>
+    </div>
+    <!-- 顶部结束 -->
+    <!-- 中部开始 -->
+    <!-- 左侧菜单开始 -->
+    <div class="left-nav" id="app">
+        <div id="side-nav">
+            <ul id="nav">
+                <li v-for="menu in functionMenuList">
+                    <a href="javascript:">
+    <!--                    <i class="iconfont left-nav-li" lay-tips="{{menu.fcName}}">&#xe6b8;</i>-->
+                        <i class="iconfont left-nav-li" :lay-tips="menu.fcName"></i>
+                        <cite>{{menu.fcName}}</cite>
+                        <i class="iconfont nav_right">&#xe697;</i></a>
+                    <ul class="sub-menu">
+                        <li v-for="childMenu in menu.childMenu">
+                            <a @click="xadmin.add_tab(childMenu.fcName,childMenu.fcUrl)">
+                                <i class="iconfont">&#xe6a7;</i>
+                                <cite>{{childMenu.fcName}}</cite></a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!-- <div class="x-slide_left"></div> -->
+    <!-- 左侧菜单结束 -->
+    <!-- 右侧主体开始 -->
+    <div class="page-content">
+        <div class="layui-tab tab" lay-filter="xbs_tab" lay-allowclose="false">
+            <ul class="layui-tab-title">
+                <li class="home">
+                    <i class="layui-icon">&#xe68e;</i>我的桌面
+                </li>
+            </ul>
+            <div class="layui-unselect layui-form-select layui-form-selected" id="tab_right">
+                <dl>
+                    <dd data-type="this">关闭当前</dd>
+                    <dd data-type="other">关闭其它</dd>
+                    <dd data-type="all">关闭全部</dd>
+                </dl>
+            </div>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <iframe src='home_page' frameborder="0" scrolling="yes" class="x-iframe"></iframe>
+                </div>
+            </div>
+            <div id="tab_show"></div>
+        </div>
+    </div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data:{
+            functionMenuList:[],
+            session:''
+        },
+        created:function (){
+            this.getFunctionMenu()
+            this.getSession()
+        },
+        methods:{
+            getFunctionMenu:function () {
+                axios.get('functionMenu/queryAll').then((response)=>{
+                    if (response.data.code==='1'){
+                        this.functionMenuList = response.data.data
+                    }else {
+                        alert(response.data.msg)
+                    }
+                })
+            },
+            getSession:function (){
+                axios.get('getSession').then((response)=>{
+                    this.session = response.data
+                })
+            },
+        }
+    })
+    new Vue({
+        el: '#index',
+        data:{
+            session:''
+        },
+        created:function (){
+            this.getSession()
+        },
+        methods:{
+            getSession:function (){
+                axios.get('getSession').then((response)=>{
+                    this.session = response.data
+                })
+            },
+        }
+    })
+</script>
+</html>

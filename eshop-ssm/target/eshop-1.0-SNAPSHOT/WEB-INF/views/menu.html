@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>菜单管理</title>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/vue.min.js"></script>
+    <script type="text/javascript" src="js/axios.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap-table.min.css">
+    <script src="js/bootstrap-table.min.js"></script>
+    <script src="js/bootstrap-table-zh-CN.min.js"></script>
+    <script type="text/javascript" src="js/layui.min.js"></script>
+    <link rel="stylesheet" href="css/layui.min.css"/>
+    <link href="css/bootstrap-switch.min.css" rel="stylesheet">
+    <script src="js/bootstrap-switch.min.js"></script>
+</head>
+<body>
+<div class="container-fluid" id="app">
+    <div id="toolbar" class="btn-group">
+        <button id="btn_add" type="button" class="btn btn-success btn-sm" @click="getMenu" data-toggle="modal"
+                data-target="#myModal">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+        </button>
+        <button id="btn_edit" type="button" class="btn btn-info btn-sm" @click="findMenu">
+            <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>修改
+        </button>
+        <button id="btn_delete" type="button" class="btn btn-danger btn-sm" @click="deleteMenu">
+            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>删除
+        </button>
+    </div>
+
+    <!--Modal模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">新增菜单</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">菜单名称</label>
+                            <div class="col-sm-5">
+                                <input v-model="menuName" type="text" class="form-control"
+                                       placeholder="请输入菜单名称">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">上一级菜单</label>
+                            <div class="col-sm-5">
+                                <select id="parentName" v-model="parentId" class="form-control">
+                                    <option hidden>请选上一级菜单</option>
+                                    <option value="0">无</option>
+                                    <option v-for="menu in menuList" :value="menu.id">{{menu.fcName}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">功能页面</label>
+                            <div class="col-sm-5">
+                                <input v-model="fcUrl" type="text" class="form-control"
+                                       placeholder="请输入页面URL">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button v-if="isUpdate" type="button" class="btn btn-primary" @click="updateMenu" data-dismiss="modal">修改</button>
+                    <button v-else type="button" class="btn btn-primary" @click="addMenu" data-dismiss="modal">添加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table id="table"></table>
+</div>
+</body>
+<script>
+    new Vue({
+        el:'#app',
+        data:{
+            menuList:[],
+            menuName:'',
+            parentId:'',
+            fcUrl:'',
+            isUpdate:false
+        },
+        methods:{
+            getMenu:function () {
+                axios.get('functionMenu/queryAll').then((response)=>{
+                    if (response.data.code=='1'){
+                        this.menuList = response.data.data
+                    }
+                })
+            },
+            addMenu:function () {
+                axios.post('functionMenu/insert',{
+                    "parentId":this.parentId,
+                    "fcName":this.menuName,
+                    "fcUrl":this.fcUrl
+                }).then((response)=>{
+                    if (response.data.code=='1'){
+                        $("#table").bootstrapTable('refresh');
+                        layer.msg('添加成功', {offset: '100px', icon: 1});
+                    }else {
+                        layer.msg('添加失败', {offset: '100px', icon: 2});
+                    }
+                })
+            },
+            deleteMenu:function () {
+                var selectData = $("#table").bootstrapTable('getSelections')
+                if (selectData != null && selectData.length > 0) {
+                    var index = layer.confirm('是否删除改记录？', {
+                        offset: '100px',
+                        title: '删除提示',
+                        icon: 3,
+                        btn: ['取消', '删除',] //可以无限个按钮
+                    }, function () {
+                        layer.close(index)
+                    }, function () {
+                        axios.delete('functionMenu/delete/' + selectData[0].id).then((response) => {
+                            $("#table").bootstrapTable('refresh');
+                            layer.msg('删除成功', {offset: '100px', icon: 1});
+                        })
+                        selectData = null
+                    });
+                } else {
+                    layer.msg('当前无选择记录', {offset: '100px', icon: 2});
+                }
+            },
+            updateMenu:function () {
+                var selectData = $("#table").bootstrapTable('getSelections')
+                axios.put('functionMenu/update',{
+                    "id":selectData[0].id,
+                    "parentId":this.parentId,
+                    "fcName":this.menuName,
+                    "fcUrl":this.fcUrl
+                }).then((response) => {
+                    $("#table").bootstrapTable('refresh');
+                    this.isUpdate = false
+                    layer.msg('修改成功', {offset: '100px', icon: 1});
+                })
+            },
+            findMenu:function () {
+                var selectData = $("#table").bootstrapTable('getSelections')
+                if (selectData != null && selectData.length > 0) {
+                    this.isUpdate = true
+                    this.getMenu()
+                    $('#myModal').modal('show')
+                    axios.get('functionMenu/query/'+selectData[0].id).then((response) => {
+                        if (response.data.code=='1'){
+                            this.menuName = response.data.data.fcName
+                            // $('#parentName').select(response.data.data.parentMenu.fcName)
+                            this.parentId = response.data.data.parentId
+                            this.fcUrl = response.data.data.fcUrl
+                        }
+                    })
+                } else {
+                    layer.msg('当前无选择记录', {offset: '100px', icon: 2});
+                }
+            }
+        }
+    })
+
+    $('#table').bootstrapTable({
+        url: 'functionMenu/queryAlls',
+        method: "get",
+        pagination: false, //启动分页
+        toolbar: '#toolbar',                //工具按钮用哪个容器
+        striped: true,                      //是否显示行间隔色
+        cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+        showColumns: true,                  //是否显示所有的列
+        showRefresh: true,                  //是否显示刷新按钮
+        minimumCountColumns: 2,             //最少允许的列数
+        clickToSelect: true,                //是否启用点击选中行
+        height: 700,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+        onLoadSuccess: function () {  //加载成功时执行
+            // layer.msg("加载成功");
+            // alert("加载成功")
+            //初始化开关按钮
+            initSwitch()
+            $(".bootstrap-switch").css({'border-radius': '20px'})
+        },
+        onLoadError: function () {  //加载失败时执行
+            // layer.msg("加载数据失败", {time : 1500, icon : 2});
+            // alert("加载数据失败")
+        },
+        columns: [{
+            checkbox: true,
+            visible: true
+        }, {
+            field: 'id',
+            title: 'id',
+        }, {
+            field: 'parentId',
+            title: '父结点id'
+
+        }, {
+            field: 'fcName',
+            title: '菜单名称',
+        }, {
+            field: 'fcUrl',
+            title: '功能页面'
+        }, {
+            field: 'status',
+            title: '状态',
+            formatter: function (value, row, index) {
+                var a=row.id
+                if(row.status=='1'){
+                    return '<input value="'+a+'" type="checkbox" name="my-checkbox1" checked>';
+                }else if(row.status=='0'){
+                    return '<input value="'+a+'" type="checkbox" name="my-checkbox1" check>';
+                }
+            }
+        }, {
+            field: 'createTime',
+            title: '创建时间'
+        }]
+    })
+    //获取选择的数据
+    $("#btn_delete").click(function () {
+        var selectData = $("#table").bootstrapTable('getSelections')
+        console.log(selectData)
+    })
+
+    function initSwitch(){
+        $('[name="my-checkbox1"]').bootstrapSwitch({
+            onText : "on",      // 设置ON文本
+            offText : "off",    // 设置OFF文本
+            onColor : "success",// 设置ON文本颜色(info/success/warning/danger/primary)
+            offColor : "danger",  // 设置OFF文本颜色 (info/success/warning/danger/primary)
+            size : "mini",    // 设置控件大小,从小到大  (mini/small/normal/large)
+            // 当开关状态改变时触发
+            onSwitchChange:function(event,state){
+                if(state==true){//打开
+                    axios.put('functionMenu/updateStatus/'+this.value+'/1').then((response)=>{})
+                }else{//关闭
+                    axios.put('functionMenu/updateStatus/'+this.value+'/0').then((response)=>{})
+                }
+            }
+        })
+    }
+</script>
+</html>

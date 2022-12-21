@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="esshop-beans" />
+        <module name="esshop-common" />
+        <module name="esshop-mapper" />
+        <module name="esshop-service" />
+        <module name="esshop-admin" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="8">
+      <module name="beans" target="1.8" />
+      <module name="common" target="1.8" />
+      <module name="esshop-admin" target="1.8" />
+      <module name="esshop-beans" target="1.8" />
+      <module name="esshop-common" target="1.8" />
+      <module name="esshop-mapper" target="1.8" />
+      <module name="esshop-parent" target="1.8" />
+      <module name="esshop-service" target="1.8" />
+      <module name="mapper" target="1.8" />
+      <module name="service" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="esshop-admin" options="-parameters" />
+      <module name="esshop-beans" options="-parameters" />
+      <module name="esshop-common" options="-parameters" />
+      <module name="esshop-mapper" options="-parameters" />
+      <module name="esshop-service" options="-parameters" />
+    </option>
+  </component>
+</project>

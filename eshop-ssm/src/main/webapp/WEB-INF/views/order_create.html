@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>订单创建</title>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/vue.min.js"></script>
+    <script type="text/javascript" src="js/axios.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap-table.min.css">
+    <script src="js/bootstrap-table.min.js"></script>
+    <script src="js/bootstrap-table-zh-CN.min.js"></script>
+    <script type="text/javascript" src="js/layui.min.js"></script>
+    <link rel="stylesheet" href="css/layui.min.css"/>
+    <link href="css/bootstrap-switch.min.css" rel="stylesheet">
+    <script src="js/bootstrap-switch.min.js"></script>
+</head>
+<style>
+    #search .input1 {
+        width: 150px;
+        margin-right: 15px;
+    }
+</style>
+<body>
+<div class="container-fluid" id="app">
+    <!--    工具栏-->
+    <div id="toolbar">
+        <div id="search">
+            <form class="form-inline">
+                <div class="form-group">
+                    <label>客户名称</label>
+<!--                    <input id="order_name" type="text" class="form-control input1">-->
+                    <select v-model="username"  id="order_name" class="form-control" style="margin-right: 15px">
+                        <option hidden></option>
+                        <option v-for="name in userNameList" :value="name.id">{{name.userName}}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>订单金额</label>
+                    <input v-model="orderPrice" id="order_price" type="text" class="form-control input1">
+                </div>
+                <div class="form-group">
+                    <label>订单状态</label>
+                    <select v-model="orderStatus" id="order_status" class="form-control" style="margin-right: 15px">
+                        <option hidden></option>
+                        <option value="0">未付款</option>
+                        <option value="1">已付款</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>订单时间</label>
+                    <input v-model="orderTime" id="start_time" style="width: 150px" type="date" class="form-control">
+                </div>
+                <div class="btn-group">
+                    <button type="reset" class="btn btn-default">
+                        <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group">
+            <button id="btn_detail" type="button" class="btn btn-success btn-sm">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>添加订单明细
+            </button>
+            <button id="btn_delete" type="button" class="btn btn-danger btn-sm" @click="deleteDetail">
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>删除订单明细
+            </button>
+            <button id="save" type="button" class="btn btn-info btn-sm" @click="saveOrder">
+                <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span>保存订单
+            </button>
+        </div>
+    </div>
+
+    <!--    model-->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">订单明细</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">商品名称</label>
+                            <div class="col-sm-6">
+                                <select id="product" v-model="productId" @change="getPrice" class="form-control">
+                                    <option hidden>请选择商品类别</option>
+                                    <option v-for="product in productList" :value="product.id">{{product.pdName}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">商品价格</label>
+                            <div class="col-sm-6">
+                                <input disabled v-model="productPrice" type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">商品数量</label>
+                            <div class="col-sm-6">
+                                <input v-model="num" value="0" type="text" class="form-control">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-success" @click="getDetail" data-dismiss="modal">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--    bootstrap-table-->
+    <table id="table"></table>
+</div>
+</body>
+<script>
+    var vue = new Vue({
+        el:'#app',
+        data:{
+            //suer
+            username:'',
+            orderPrice:'0',
+            orderStatus: '',
+            orderTime:'',
+            //product
+            userNameList:[],
+            productList:[],
+            productPrice:'',
+            productId:'',
+            num:'',
+            productName:''
+        },
+        created:function () {
+            this.getUserNameList()
+            // this.getProductList()
+        },
+        methods:{
+            getUserNameList:function () {
+                axios.get('userInfo/queryAlls').then((response)=>{
+                    this.userNameList = response.data.data
+                })
+            },
+            getProductList:function () {
+                axios.get('productInfo/queryAlls').then((response)=>{
+                    this.productList = response.data.data
+                })
+            },
+            getPrice:function () {
+                axios.get('productInfo/query/'+this.productId).then((response)=>{
+                    this.productPrice = response.data.data.price
+                    this.productName = response.data.data.pdName
+                })
+            },
+            getDetail:function(){
+                axios.post('orderDetail/addDetail',{
+                    "id":this.productId,
+                    "name": this.productName,
+                    "price":this.productPrice,
+                    "num": this.num
+                }).then((response)=>{
+                    $("#table").bootstrapTable("refresh")
+                })
+            },
+            deleteDetail:function () {
+                var selectData = $("#table").bootstrapTable('getSelections')
+                if (selectData != null && selectData.length > 0) {
+                    var index = layer.confirm('是否删除改记录？', {
+                        offset: '100px',
+                        title: '删除提示',
+                        icon: 3,
+                        btn: ['取消', '删除',] //可以无限个按钮
+                    }, function () {
+                        layer.close(index)
+                    }, function () {
+                        axios.delete('orderDetail/delete/' + selectData[0].name).then((response) => {
+                            layer.msg('删除成功', {offset: '100px', icon: 1});
+                            $('#order_price').val(0)
+                            $("#table").bootstrapTable('refresh');
+                        })
+                        selectData = null
+                    });
+                } else {
+                    layer.msg('当前无选择记录', {offset: '100px', icon: 2});
+                }
+            },
+            saveOrder:function () {
+                var list = []
+                var selectData = $("#table").bootstrapTable('getSelections')
+                console.log(selectData)
+                for (let i = 0; i < selectData.length;i++) {
+                    var e = {pid:selectData[i].id,num:selectData[i].num}
+                    list.push(e)
+                }
+                axios.post('orderInfo/saveInfo',{
+                    "uid":this.username,
+                    "orderPrice":$('#order_price').val(),
+                    "status":this.orderStatus,
+                    "createTime":this.orderTime,
+                    "orderDetail":list
+
+                }).then((response)=>{
+                    if(response.data.code=='1'){
+                        layer.msg('保存成功', {offset: '100px', icon: 1});
+                    }else {
+                        layer.msg('保存失败', {offset: '100px', icon: 3});
+                    }
+                })
+            }
+        }
+    })
+
+    $('#table').bootstrapTable({
+        url: 'orderDetail/getDetail',
+        method: "get",
+        pagination: false, //启动分页
+        toolbar: '#toolbar',                //工具按钮用哪个容器
+        striped: true,                      //是否显示行间隔色
+        cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+        // height: 710,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+        clickToSelect: false,                //是否启用点击选中行
+        onLoadSuccess: function () {  //加载成功时执行
+            //计算订单金额
+            //复选框水平垂直居中显示
+            $(".bs-checkbox").css({'text-align': 'center', 'vertical-align': 'middle'})
+        },
+        onLoadError: function () {  //加载失败时执行
+            // layer.msg("加载数据失败", {time : 1500, icon : 2});
+            // alert("加载数据失败")
+        },
+        onCheck : function(row, tr,flied){
+
+            var c = parseInt($('#order_price').val())
+            var total = parseInt(row.price*row.num)
+            var n = c+total
+            $('#order_price').val(n)
+        },
+        onUncheck:function(row){
+            var c = parseInt($('#order_price').val())
+            var total = parseInt(row.price*row.num)
+            var n = c-total
+            $('#order_price').val(n)
+        },
+        onCheckAll:function(rows){
+            var count=0
+            for (let i = 0; i < rows.length; i++) {
+                count += rows[i].num*rows[i].price
+            }
+            $('#order_price').val(count)
+        },
+        onUncheckAll:function () {
+            $('#order_price').val(0)
+        },
+        //设置列属性
+        columns: [{
+            checkbox: true,
+        }, {
+            field: 'id',
+            title: 'id',
+            align: "center",
+            valign: 'middle',
+            visible: false,
+        },{
+            field: 'name',
+            title: '商品名称',
+            align: "center",
+            valign: 'middle',
+        }, {
+            field: 'price',
+            title: '单价',
+            align: "center",
+            valign: 'middle',
+        }, {
+            field: 'num',
+            title: '数量',
+            align: "center",
+            valign: 'middle',
+        }, {
+            field: 'total',
+            title: '小计',
+            align: "center",
+            valign: 'middle',
+            formatter: function (value, row, index) {
+                return row.price*row.num
+            }
+        }]
+    })
+    $('#btn_detail').click(function () {
+        vue.getProductList()
+        $('#myModal').modal('show')
+    })
+</script>
+</html>

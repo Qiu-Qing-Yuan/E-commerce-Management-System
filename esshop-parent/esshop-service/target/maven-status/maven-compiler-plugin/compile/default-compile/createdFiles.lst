@@ -1,0 +1,6 @@
+com\ks\service\impl\ProductInfoServiceImpl.class
+com\ks\service\ProductInfoService.class
+com\ks\service\UserInfoService.class
+com\ks\service\impl\AdminServiceImpl.class
+com\ks\service\AdminInfoService.class
+com\ks\service\impl\UserInfoServiceImpl.class

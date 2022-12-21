@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ks.eshop.dao.ProductInfoDao">
+
+
+    <select id="queryByCondition" parameterType="ProductInfo" resultMap="map1">
+        select * from product_info pd
+        <where>
+            <if test="pdCode!=null and pdCode!=''">
+                pd.pd_code = #{pdCode}
+            </if>
+            <if test="pdName!=null and pdName!=''">
+                and pd.pd_name = #{pdName}
+            </if>
+            <if test="tid>0">
+                and pd.tid = #{tid}
+            </if>
+            <if test="brand!=null and brand!=''">
+                and pd.brand = #{brand}
+            </if>
+            <if test="price!=null and price!=''">
+                and pd.price between #{price} and #{hPrice}
+            </if>
+        </where>
+    </select>
+    <resultMap id="map1" type="ProductInfo">
+        <result property="id" column="id"/>
+        <association property="type" column="tid" select="com.ks.eshop.dao.ProductTypeDao.queryById"/>
+    </resultMap>
+</mapper>

@@ -1,0 +1,10 @@
+com\ks\entity\ProductType.class
+com\ks\entity\OrderDetailKey.class
+com\ks\entity\UserInfo.class
+com\ks\entity\FunctionMenu.class
+com\ks\entity\ProductInfo.class
+com\ks\entity\OrderDetail.class
+com\ks\entity\OrderInfo.class
+com\ks\entity\Permission.class
+com\ks\entity\AdminInfo.class
+com\ks\entity\OrderInfoKey.class

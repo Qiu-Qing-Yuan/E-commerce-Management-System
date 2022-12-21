@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ks.eshop.dao.PermissionDao">
+
+    <resultMap type="com.ks.eshop.pojo.Permission" id="PermissionMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="aid" column="aid" jdbcType="INTEGER"/>
+        <result property="fid" column="fid" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="PermissionMap">
+        select id,
+               aid,
+               fid
+        from my_eshop.permission
+        where id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="PermissionMap">
+        select id,
+               aid,
+               fid
+        from my_eshop.permission
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="PermissionMap">
+        select
+        id, aid, fid
+        from my_eshop.permission
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="aid != null">
+                and aid = #{aid}
+            </if>
+            <if test="fid != null">
+                and fid = #{fid}
+            </if>
+        </where>
+    </select>
+<!--    //根据aid查询相应的菜单及子菜单-->
+    <select id="queryByAidForMenu" resultMap="queryByAidForMenuMap">
+        SELECT *
+        from (select * from function_menu where id in (select fid from permission where aid = #{aid})) a
+                 join (select * from permission where aid = #{aid}) b on a.id = b.fid where parent_id = 0 and status = 1
+    </select>
+    <resultMap id="queryByAidForMenuMap" type="com.ks.eshop.pojo.FunctionMenu">
+        <result property="id" column="id"/>
+        <collection property="childMenu" column="{id=id,aid=aid}" select="com.ks.eshop.dao.PermissionDao.queryByParentIdForMenu"/>
+    </resultMap>
+    <select id="queryByParentIdForMenu" resultType="com.ks.eshop.pojo.FunctionMenu" parameterType="java.util.HashMap">
+        SELECT *
+        from (select * from function_menu where id in (select fid from permission where aid = #{aid})) a
+                 join (select * from permission where aid = #{aid}) b on a.id = b.fid where parent_id = #{id} and status = 1
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into my_eshop.permission()
+        values ()
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into my_eshop.permission(aid,fid)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.aid},#{entity.fid})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into my_eshop.permission()
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            ()
+        </foreach>
+        on duplicate key update
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update my_eshop.permission
+        <set>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from my_eshop.permission
+        where id = #{id}
+    </delete>
+
+</mapper>
+

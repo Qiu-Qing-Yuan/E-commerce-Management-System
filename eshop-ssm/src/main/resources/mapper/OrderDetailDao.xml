@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ks.eshop.dao.OrderDetailDao">
+
+    <resultMap type="com.ks.eshop.pojo.OrderDetail" id="OrderDetailMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="oid" column="oid" jdbcType="INTEGER"/>
+        <result property="pid" column="pid" jdbcType="INTEGER"/>
+        <result property="num" column="num" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="OrderDetailMap">
+        select id,
+               oid,
+               pid,
+               num,
+               create_time,
+               update_time
+        from my_eshop.order_detail
+        where id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="OrderDetailMap">
+        select id,
+               oid,
+               pid,
+               num,
+               create_time,
+               update_time
+        from my_eshop.order_detail
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="OrderDetailMap">
+        select
+        id, oid, pid, num, create_time, update_time
+        from my_eshop.order_detail
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="oid != null">
+                and oid = #{oid}
+            </if>
+            <if test="pid != null">
+                and pid = #{pid}
+            </if>
+            <if test="num != null">
+                and num = #{num}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+        </where>
+    </select>
+<!--    根据oid记录-->
+    <select id="queryByOid" resultMap="queryByOidMap">
+        select
+            id, oid, pid, num, create_time, update_time
+        from my_eshop.order_detail where oid = #{oid}
+    </select>
+    <resultMap id="queryByOidMap" type="com.ks.eshop.pojo.OrderDetail">
+        <result property="id" column="id"/>
+        <association property="orderInfo" column="oid" select="com.ks.eshop.dao.OrderInfoDao.queryById"/>
+        <association property="productInfo" column="pid" select="com.ks.eshop.dao.ProductInfoDao.queryById"/>
+    </resultMap>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into my_eshop.order_detail(num, create_time, update_time)
+        values (#{num}, #{createTime}, #{updateTime})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into my_eshop.order_detail(oid,pid,num)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.oid},#{entity.pid},#{entity.num})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into my_eshop.order_detail(num, create_time, update_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.num}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+        on duplicate key update
+        num = values(num) , create_time = values(create_time) , update_time = values(update_time)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update my_eshop.order_detail
+        <set>
+            <if test="num != null">
+                num = #{num},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from my_eshop.order_detail
+        where id = #{id}
+    </delete>
+
+</mapper>
+

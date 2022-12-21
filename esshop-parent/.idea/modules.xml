@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/esshop-admin/esshop-admin.iml" filepath="$PROJECT_DIR$/esshop-admin/esshop-admin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/esshop-beans/esshop-beans.iml" filepath="$PROJECT_DIR$/esshop-beans/esshop-beans.iml" />
+      <module fileurl="file://$PROJECT_DIR$/esshop-common/esshop-common.iml" filepath="$PROJECT_DIR$/esshop-common/esshop-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/esshop-mapper/esshop-mapper.iml" filepath="$PROJECT_DIR$/esshop-mapper/esshop-mapper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/esshop-parent.iml" filepath="$PROJECT_DIR$/esshop-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/esshop-service/esshop-service.iml" filepath="$PROJECT_DIR$/esshop-service/esshop-service.iml" />
+    </modules>
+  </component>
+</project>

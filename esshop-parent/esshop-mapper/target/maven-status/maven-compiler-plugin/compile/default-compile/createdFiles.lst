@@ -1,0 +1,8 @@
+com\ks\dao\OrderDetailMapper.class
+com\ks\dao\FunctionMenuMapper.class
+com\ks\dao\PermissionMapper.class
+com\ks\dao\AdminInfoMapper.class
+com\ks\dao\ProductTypeMapper.class
+com\ks\dao\UserInfoMapper.class
+com\ks\dao\ProductInfoMapper.class
+com\ks\dao\OrderInfoMapper.class

@@ -1,0 +1,5 @@
+com\ks\EsshopAdminApplication.class
+com\ks\controller\AdminInfoController.class
+com\ks\controller\UserInfoController.class
+com\ks\config\SwaggerConfig.class
+com\ks\controller\ProductInfoController.class

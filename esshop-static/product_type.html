@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>商品类型</title>
+    <script type="text/javascript" src="static/js/jquery.min.js"></script>
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <script type="text/javascript" src="static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="static/js/vue.min.js"></script>
+    <script type="text/javascript" src="static/js/axios.min.js"></script>
+    <link rel="stylesheet" href="static/css/bootstrap-table.min.css">
+    <script src="static/js/bootstrap-table.min.js"></script>
+    <script src="static/js/bootstrap-table-zh-CN.min.js"></script>
+    <script type="text/javascript" src="static/js/layui.min.js"></script>
+    <link rel="stylesheet" href="static/css/layui.min.css"/>
+    <link href="static/css/bootstrap-switch.min.css" rel="stylesheet">
+    <script src="static/js/bootstrap-switch.min.js"></script>
+</head>
+<body>
+    <div class="container-fluid" id="app">
+        <div id="toolbar" class="btn-group">
+            <button id="btn_add" type="button" class="btn btn-success btn-sm" data-toggle="modal"
+                    data-target="#myModal">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+            </button>
+            <button id="btn_edit" type="button" class="btn btn-info btn-sm" @click="findType">
+                <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>修改
+            </button>
+            <button id="btn_delete" type="button" class="btn btn-danger btn-sm" @click="deleteType">
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>删除
+            </button>
+        </div>
+        <!--    bootstrap-table-->
+        <table id="table"></table>
+
+        <!--Modal模态框 -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">新增类型</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal">
+                            <div class="form-group">
+                                <label for="inputEmail3" class="col-sm-2 control-label">类型名称</label>
+                                <div class="col-sm-6">
+                                    <input v-model="type" type="text" class="form-control" id="inputEmail3"
+                                           placeholder="请输入类型名称">
+                                </div>
+                                <span style="color: red;display: block;padding: 5px">{{msg}}</span>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button v-if="isUpdate" type="button" class="btn btn-primary" @click="updateType(id)">修改</button>
+                        <button v-else type="button" class="btn btn-primary" @click="addType">添加</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    new Vue({
+        el:'#app',
+        data:{
+            id:'',
+            type:'',
+            msg:'',
+            isUpdate:false,
+            session:''
+        },
+        methods: {
+            addType: function () {
+                if (this.type == "") {
+                    this.msg = "类型不能为空"
+                } else {
+                    axios.post('productType/insert/' + this.type).then((response) => {
+                        if (response.data.code == '1') {
+                            $("#table").bootstrapTable('refresh');
+                            $('#myModal').modal('hide')
+                            layer.msg('添加成功', {offset: '100px', icon: 1});
+                            this.type = ''
+                            this.msg = ''
+                        } else {
+                            this.msg = "该类型已存在"
+                        }
+                    })
+                }
+            },
+            findType: function () {
+                this.isUpdate = true
+                var selectData = $("#table").bootstrapTable('getSelections')
+                if (selectData != null && selectData.length > 0) {
+                    $('#myModal').modal('show')
+                    axios.get('productType/query/' + selectData[0].id).then((response) => {
+                        if (response.data.code == '1') {
+                            this.type = response.data.data.typeName
+                            this.id = response.data.data.id
+                        }
+                    })
+                }else {
+                    layer.msg('当前无选择记录', {offset: '100px', icon: 2});
+                }
+            },
+            updateType:function (id) {
+                axios.put('productType/update/'+id+'/'+this.type).then((response)=>{
+                    if (response.data.code == '1') {
+                        $("#table").bootstrapTable('refresh');
+                        $('#myModal').modal('hide')
+                        layer.msg('修改成功', {offset: '100px', icon: 1});
+                        this.type = ''
+                        this.msg = ''
+                        this.isUpdate = false
+                    }else {
+                        this.msg = "该类型已存在"
+                    }
+                })
+            },
+            deleteType:function () {
+                var selectData = $("#table").bootstrapTable('getSelections')
+                if (selectData != null && selectData.length > 0) {
+                    var index = layer.confirm('是否删除改记录？', {
+                        offset: '100px',
+                        title: '删除提示',
+                        icon: 3,
+                        btn: ['取消', '删除',] //可以无限个按钮
+                    }, function () {
+                        layer.close(index)
+                    }, function () {
+                        axios.delete('productType/delete/' + selectData[0].id).then((response) => {
+                            $("#table").bootstrapTable('refresh');
+                            layer.msg('删除成功', {offset: '100px', icon: 1});
+                        })
+                        selectData = null
+                    });
+                } else {
+                    layer.msg('当前无选择记录', {offset: '100px', icon: 2});
+                }
+            }
+        }
+    })
+
+
+    //设置table属性
+    $('#table').bootstrapTable({
+        url: 'productType/queryAlls',
+        method: "get",
+        pagination: false, //启动分页
+        toolbar: '#toolbar',                //工具按钮用哪个容器
+        striped: true,                      //是否显示行间隔色
+        cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+        showColumns: true,                  //是否显示所有的列
+        showRefresh: true,                  //是否显示刷新按钮
+        minimumCountColumns: 2,             //最少允许的列数
+        clickToSelect: true,                //是否启用点击选中行
+        height: 700,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+        onLoadSuccess: function () {  //加载成功时执行
+            //复选框水平垂直居中显示
+            $(".bs-checkbox").css({'text-align': 'center', 'vertical-align': 'middle'})
+        },
+        onLoadError: function () {  //加载失败时执行
+            // layer.msg("加载数据失败", {time : 1500, icon : 2});
+            // alert("加载数据失败")
+        },
+        //设置列属性
+        columns: [{
+            checkbox: true,
+            visible: true,
+        }, {
+            title: '序号',
+            width: 40,
+            align: "center",
+            valign: 'middle',
+            formatter: function (value, row, index) {
+                var pageSize = $('#table').bootstrapTable('getOptions').pageSize;//通过表的#id 可以得到每页多少条
+                var pageNumber = $('#table').bootstrapTable('getOptions').pageNumber;//通过表的#id 可以得到当前第几页
+                return pageSize * (pageNumber - 1) + index + 1;    //返回每条的序号： 每页条数 * （当前页 - 1 ）+ 序号
+            }
+        }, {
+            field: 'id',
+            title: 'id',
+            align: "center",
+            valign: 'middle',
+        }, {
+            field: 'typeName',
+            title: '商品类型',
+            align: "center",
+            valign: 'middle',
+        },{
+            field: 'createTime',
+            title: '创建时间',
+            align: "center",
+            valign: 'middle',
+        }]
+    })
+</script>
+</html>
